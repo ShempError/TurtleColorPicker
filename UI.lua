@@ -165,7 +165,7 @@ local function Init()
 
     -- Main Frame
     F.main = CreateFrame("Frame", "TurtleColorPickerFrame", UIParent)
-    F.main:SetFrameStrata("DIALOG")
+    F.main:SetFrameStrata("FULLSCREEN_DIALOG")
     F.main:SetWidth(F.FRAME_W)
     F.main:SetHeight(300)
     F.main:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
@@ -487,6 +487,40 @@ function TurtleColorPicker_UI:Show(sess)
 
     RecalcLayout()
     UpdateColor()
+
+    -- Position near anchor frame if provided
+    if sess.anchorFrame then
+        local anchor = sess.anchorFrame
+        local scale = F.main:GetEffectiveScale()
+        local aScale = anchor:GetEffectiveScale()
+        -- Get anchor position in screen coords
+        local aLeft = anchor:GetLeft() * aScale
+        local aRight = anchor:GetRight() * aScale
+        local aTop = anchor:GetTop() * aScale
+        -- Convert to our scale
+        local screenW = GetScreenWidth() * UIParent:GetEffectiveScale()
+        local fw = F.main:GetWidth() * scale
+        local fh = F.main:GetHeight() * scale
+
+        -- Try to place to the right of the anchor with a small gap
+        local gap = 8
+        local targetX = aRight + gap
+        local targetY = aTop
+
+        -- If it would go off the right edge, place to the left instead
+        if (targetX + fw) > screenW then
+            targetX = aLeft - fw - gap
+        end
+        -- Clamp Y so it stays on screen
+        local screenH = GetScreenHeight() * UIParent:GetEffectiveScale()
+        if targetY > screenH then targetY = screenH end
+        if (targetY - fh) < 0 then targetY = fh end
+
+        -- Convert back to our frame's scale and set position from BOTTOMLEFT of UIParent
+        F.main:ClearAllPoints()
+        F.main:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", targetX / scale, targetY / scale)
+    end
+
     F.main:Show()
 end
 

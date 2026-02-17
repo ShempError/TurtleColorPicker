@@ -120,6 +120,7 @@ function TurtleColorPicker:Open(opts)
         origG = ig,
         origB = ib,
         hasHexInput = opts.hasHexInput or false,
+        anchorFrame = opts.anchorFrame or nil,
         onChange = opts.onChange,
         onOk = opts.onOk,
         onCancel = opts.onCancel,
