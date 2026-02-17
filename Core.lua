@@ -5,6 +5,9 @@ TurtleColorPicker = {}
 TurtleColorPicker.version = "1.0.0"
 TurtleColorPicker._session = nil
 
+-- Pre-create UI namespace (UI.lua populates it)
+TurtleColorPicker_UI = {}
+
 -- ============================================================
 -- MATH UTILITIES
 -- ============================================================
@@ -98,7 +101,6 @@ TurtleColorPicker.Clamp = Clamp
 function TurtleColorPicker:Open(opts)
     opts = opts or {}
 
-    -- Parse initial color
     local ir = 1
     local ig = 1
     local ib = 1
@@ -110,17 +112,13 @@ function TurtleColorPicker:Open(opts)
 
     local h, s, v = RGBtoHSV(ir, ig, ib)
 
-    -- Build session
     self._session = {
         h = h,
         s = s,
         v = v,
-        alpha = Clamp(opts.alpha or 1, 0, 1),
         origR = ir,
         origG = ig,
         origB = ib,
-        origAlpha = Clamp(opts.alpha or 1, 0, 1),
-        hasAlpha = opts.hasAlpha or false,
         hasHexInput = opts.hasHexInput or false,
         onChange = opts.onChange,
         onOk = opts.onOk,
@@ -128,37 +126,39 @@ function TurtleColorPicker:Open(opts)
         _confirmed = false,
     }
 
-    -- Delegate to UI
+    if not TurtleColorPicker_UI.Show then
+        DEFAULT_CHAT_FRAME:AddMessage("|cffff0000[TCP] ERROR: UI.lua failed to load. Check for Lua errors at login.|r")
+        return
+    end
     TurtleColorPicker_UI:Show(self._session)
 end
 
 function TurtleColorPicker:Close()
-    TurtleColorPicker_UI:Hide()
+    if TurtleColorPicker_UI.Hide then
+        TurtleColorPicker_UI:Hide()
+    end
 end
 
--- Called by UI when color changes
 function TurtleColorPicker:_NotifyChange()
     local s = self._session
     if not s then return end
     if s.onChange then
         local r, g, b = HSVtoRGB(s.h, s.s, s.v)
-        s.onChange(r, g, b, s.alpha)
+        s.onChange(r, g, b)
     end
 end
 
--- Called by UI on OK
 function TurtleColorPicker:_NotifyOk()
     local s = self._session
     if not s then return end
     s._confirmed = true
     if s.onOk then
         local r, g, b = HSVtoRGB(s.h, s.s, s.v)
-        s.onOk(r, g, b, s.alpha)
+        s.onOk(r, g, b)
     end
     self:Close()
 end
 
--- Called by UI on Cancel / ESC
 function TurtleColorPicker:_NotifyCancel()
     local s = self._session
     if not s then return end
@@ -178,17 +178,11 @@ SLASH_TURTLECOLORPICKER2 = "/turtlecolor"
 SlashCmdList["TURTLECOLORPICKER"] = function(msg)
     if msg == "test" then
         TurtleColorPicker:Open({
-            color = {r = 1, g = 0, b = 0},
-            hasAlpha = true,
+            color = {r = 0.4, g = 0.6, b = 0.85},
             hasHexInput = true,
-            onChange = function(r, g, b, a)
+            onOk = function(r, g, b)
                 DEFAULT_CHAT_FRAME:AddMessage(
-                    string.format("|cff00ff00[TCP]|r onChange: r=%.2f g=%.2f b=%.2f a=%.2f", r, g, b, a)
-                )
-            end,
-            onOk = function(r, g, b, a)
-                DEFAULT_CHAT_FRAME:AddMessage(
-                    string.format("|cff00ff00[TCP]|r OK: #%s a=%.0f%%", RGBtoHex(r, g, b), a * 100)
+                    string.format("|cff00ff00[TCP]|r OK: #%s", RGBtoHex(r, g, b))
                 )
             end,
             onCancel = function()
@@ -206,7 +200,7 @@ SlashCmdList["TURTLECOLORPICKER"] = function(msg)
         })
     else
         DEFAULT_CHAT_FRAME:AddMessage("|cff00ff00[TurtleColorPicker]|r v" .. TurtleColorPicker.version)
-        DEFAULT_CHAT_FRAME:AddMessage("  /tcp test    -- Full test (hex + alpha)")
+        DEFAULT_CHAT_FRAME:AddMessage("  /tcp test    -- Full test (with hex input)")
         DEFAULT_CHAT_FRAME:AddMessage("  /tcp minimal -- Minimal test (color only)")
     end
 end
