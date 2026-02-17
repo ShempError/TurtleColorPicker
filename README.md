@@ -2,7 +2,7 @@
 
 Standalone HSV color picker library for [TurtleWoW](https://turtle-wow.org/) (WoW 1.12) addon developers.
 
-![TurtleColorPicker](https://i.imgur.com/placeholder.png)
+![TurtleColorPicker](screenshot.png)
 
 ## Features
 
