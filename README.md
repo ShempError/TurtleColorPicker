@@ -62,6 +62,7 @@ Opens the color picker popup.
 |--------|------|-------------|
 | `color` | `{r, g, b}` | Initial color, values 0-1. Default: white |
 | `hasHexInput` | `boolean` | Show hex input field. Default: `false` |
+| `anchorFrame` | `frame` | Position picker next to this frame. Default: screen center |
 | `onChange` | `function(r, g, b)` | Called on every color change during interaction |
 | `onOk` | `function(r, g, b)` | Called when OK is clicked |
 | `onCancel` | `function()` | Called when Cancel is clicked or ESC pressed |
@@ -96,6 +97,7 @@ swatch:SetScript("OnClick", function()
     TurtleColorPicker:Open({
         color = MySettings,
         hasHexInput = true,
+        anchorFrame = swatch,  -- picker appears next to the swatch
         onChange = function(r, g, b)
             tex:SetTexture(r, g, b, 1)
         end,
